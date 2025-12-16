@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #2c3e50; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #1E90FF; color: white; }
+        .success { color: green; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Rapport de Configuration - {{ ansible_date_time.date }}</h1>
+    
+    <h2>Informations Générales</h2>
+    <table>
+        <tr><th>Machine</th><td>{{ ansible_hostname }}</td></tr>
+        <tr><th>Adresse IP</th><td>{{ ansible_default_ipv4.address }}</td></tr>
+        <tr><th>OS</th><td>{{ ansible_distribution }} {{ ansible_distribution_version }}</td></tr>
+        <tr><th>Noyau (Kernel)</th><td>{{ ansible_kernel }}</td></tr>
+        <tr><th>RAM Totale</th><td>{{ (ansible_memtotal_mb / 1024) | round(2) }} GB</td></tr>
+    </table>
+
+    <h2>Espace Disque</h2>
+    <table>
+        <tr>
+            <th>Point de Montage</th>
+            <th>Taille Totale</th>
+            <th>Espace Disponible</th>
+        </tr>
+        {% for mount in ansible_mounts %}
+        {% if mount.size_total is defined %} 
+        <tr>
+            <td>{{ mount.mount }}</td>
+            <td>{{ (mount.size_total / 1073741824) | round(2) }} GB</td>
+            <td>{{ (mount.size_available / 1073741824) | round(2) }} GB</td>
+        </tr>
+        {% endif %}
+        {% endfor %}
+    </table>
+    <h2>Services Actifs</h2>
+    <p>Liste des services en cours d'exécution:</p>
+    <ul>
+        {% for service_name, service_data in ansible_facts.services.items() %}
+            {% if service_data.state is defined and service_data.status is defined and service_data.state == 'running' and service_data.status == 'enabled' %}
+                <li><strong>{{ service_name }}</strong> : <span class="success">Actif</span></li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+</body>
+</html>

@@ -1,0 +1,20 @@
+- name: Génération de rapport CMDB
+  hosts: all
+  become: no
+
+  tasks:
+    - name: Récupération des service facts
+      service_facts:
+
+    - name: Création du dossier de rapports s'il n'existe pas
+      file:
+        path: "./reports"
+        state: directory
+      delegate_to: localhost
+      run_once: true
+
+    - name: Génération du rapport HTML à partir du template
+      template:
+        src: "templates/modele_rapport_jinja.j2"
+        dest: "./reports/report_{{ ansible_hostname }}.html"
+      delegate_to: localhost
